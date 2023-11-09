@@ -15,6 +15,8 @@ wrangler secret put TGBOT_TOKEN
 wrangler secret put WEBHOOKS_SECRET
 wrangler secret put USERID_SALT
 wrangler publish
+# set up webhooks
+curl your-deployment.worker.dev/bot-reg?token=ADMIN_TOKEN
 ```
 
 ## TODO
