@@ -1,0 +1,6 @@
+name = "better-url-bot"
+main = "src/index.ts"
+compatibility_date = "2023-11-08"
+kv_namespaces = [
+    { binding = "MAIN", id = "4dfc9f000ab842639a4a449e959b721c" }
+]
