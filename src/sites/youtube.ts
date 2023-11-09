@@ -1,7 +1,7 @@
 import { URLOptimizerProcessorHandler, urlOptimizer } from "../optimizer";
 import { filterQueryString, queryParamsWhiteList } from "../util";
 
-const processYoutubeLink: URLOptimizerProcessorHandler = async (url, options, env) => {
+const processYoutubeLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
     let parsedUrl = new URL(url);
     parsedUrl.search = filterQueryString(parsedUrl.searchParams, queryParamsWhiteList(["v", "t"])).toString();
     if (options.optimizePreview) {

@@ -1,7 +1,7 @@
 import { URLOptimizerProcessorHandler, urlOptimizer } from "../optimizer";
-import { filterQueryString, removeAllQueryParams } from "../util";
+import { filterQueryString, removeAllQueryParams, fetchShortLink } from "../util";
 
-const processTwitterLink: URLOptimizerProcessorHandler = async (url, options, env) => {
+const processTwitterLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
     let parsedUrl = new URL(url);
     parsedUrl.search = filterQueryString(parsedUrl.searchParams, removeAllQueryParams).toString();
     if (options.optimizePreview) {
@@ -10,7 +10,14 @@ const processTwitterLink: URLOptimizerProcessorHandler = async (url, options, en
     return parsedUrl.toString();
 }
 
+const processTwitterShortLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
+    return ctx.optimizeUrl(await fetchShortLink(url), options, env);
+}
+
 urlOptimizer.register([{
     host: ["x.com", "twitter.com"],
     optmize: processTwitterLink
+}, {
+    host: ["t.co"],
+    optmize: processTwitterShortLink
 }]);

@@ -4,7 +4,7 @@ export type URLOptimizerOptions = {
     optimizePreview?: boolean;
 }
 
-export type URLOptimizerProcessorHandler = (url: string, options: URLOptimizerOptions, env: Env) => Promise<string>;
+export type URLOptimizerProcessorHandler = (url: string, options: URLOptimizerOptions, env: Env, optimizer: URLOptimizer) => Promise<string>;
 
 
 export type URLOptimizerProcessor = {
@@ -29,7 +29,7 @@ class URLOptimizer {
         let parsedUrl = new URL(url);
         let processor = this.processors.get(parsedUrl.host);
         if (processor) {
-            return await processor(url, options, env);
+            return await processor(url, options, env, this);
         } else {
             return url;
         }
