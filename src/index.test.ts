@@ -15,11 +15,33 @@ describe("Worker", () => {
 		await worker.stop();
 	});
 
-	// it("should return Hello World", async () => {
-	// 	const resp = await worker.fetch();
-	// 	if (resp) {
-	// 		const text = await resp.text();
-	// 		expect(text).toMatchInlineSnapshot(`"Hello World!"`);
-	// 	}
-	// });
+	it("test response format", async () => {
+		let url = encodeURIComponent("https://youtu.be/5Na4F98SHLk?si=5qORt6xcccccaTiS&t=5");
+		let resp = await worker.fetch(`https://example.com/?url=${url}&preview=true`);
+		if (resp) {
+			let text = await resp.text();
+			expect(text).toBe("https://youtu.be/5Na4F98SHLk?t=5");
+		}
+
+		url = encodeURIComponent("https://x.com/virtual_kaf?s=20");
+		resp = await worker.fetch(`https://example.com/?url=${url}&preview=true`);
+		if (resp) {
+			let text = await resp.text();
+			expect(text).toBe("https://fxtwitter.com/virtual_kaf");
+		}
+
+		url = encodeURIComponent("aHR0cHM6Ly94LmNvbS92aXJ0dWFsX2thZj9zPTIwCg==");
+		resp = await worker.fetch(`https://example.com/?url=${url}&preview=false&input=base64`);
+		if (resp) {
+			let text = await resp.text();
+			expect(text).toBe("https://x.com/virtual_kaf");
+		}
+
+		url = encodeURIComponent("https://x.com/virtual_kaf?s=20");
+		resp = await worker.fetch(`https://example.com/?url=${url}&preview=true&format=json`);
+		if (resp) {
+			let text = await resp.text();
+			expect(text).toBe('{"optimizedUrl":"https://fxtwitter.com/virtual_kaf"}');
+		}
+	});
 });

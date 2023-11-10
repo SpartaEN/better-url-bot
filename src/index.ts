@@ -1,15 +1,6 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `wrangler dev src/index.ts` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `wrangler deploy src/index.ts --name my-worker` to deploy your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
 import { URLOptimizeError, BotAPIError } from "./error";
 import { TelegramBot, TGBotMessage } from "./tgbot";
-import { urlOptimizer, URLOptimizerOptions } from "./optimizer";
+import { createOptimizerRunningContext, URLOptimizerOptions } from "./optimizer";
 import User from "./user";
 import './sites';
 
@@ -38,6 +29,7 @@ async function processBotCommand(request: Request, env: Env, ctx: ExecutionConte
 	let message = await request.json() as TGBotMessage;
 	const user = new User(env, message);
 	await user.init();
+	let optimizerContext = createOptimizerRunningContext(user.data.options);
 	if (message.message != null) {
 		if (message.message.text != null && message.message.via_bot === undefined) {
 			if (message.message.text.startsWith("/start")) {
@@ -49,7 +41,7 @@ async function processBotCommand(request: Request, env: Env, ctx: ExecutionConte
 			} else {
 				let url = extractUrlFromText(message.message.text);
 				if (url != null) {
-					let optimizedUrl = await urlOptimizer.optimizeUrl(url, user.data.options, env);
+					let optimizedUrl = await optimizerContext.optimizer.optimizeUrl(optimizerContext, url);
 					await bot.sendMessage(message.message.chat.id, optimizedUrl);
 				} else {
 					await bot.sendMessage(message.message.chat.id, "Your message does not contain a valid URL.");
@@ -59,7 +51,7 @@ async function processBotCommand(request: Request, env: Env, ctx: ExecutionConte
 	} else if (message.inline_query != null) {
 		let url = extractUrlFromText(message.inline_query.query);
 		if (url != null) {
-			let optimizedUrl = await urlOptimizer.optimizeUrl(url, user.data.options, env);
+			let optimizedUrl = await optimizerContext.optimizer.optimizeUrl(optimizerContext, url);
 			await bot.answerInlineQuery(message.inline_query.id, [{
 				type: "article",
 				id: "1",
@@ -98,15 +90,28 @@ async function registerBot(request: Request, env: Env, ctx: ExecutionContext) {
 async function processUrl(request: Request, env: Env, ctx: ExecutionContext) {
 	const reqUrl = new URL(request.url);
 	let url = reqUrl.searchParams.get("url");
-	let format = reqUrl.searchParams.get("format");
+	let inputFormat = reqUrl.searchParams.get("input");
+	let outputFormat = reqUrl.searchParams.get("format");
 	let preview = reqUrl.searchParams.get("preview");
+	let options: URLOptimizerOptions = {
+		optimizePreview: preview === "true",
+	};
+	let optimizerContext = createOptimizerRunningContext(options);
 	if (url != null) {
-		if (format === "base64") {
+		if (inputFormat === "base64") {
 			url = atob(url);
 		}
-		return new Response(await urlOptimizer.optimizeUrl(url, {
-			optimizePreview: preview === "true",
-		}, env));
+		if (outputFormat === "json") {
+			return new Response(JSON.stringify({
+				optimizedUrl: await optimizerContext.optimizer.optimizeUrl(optimizerContext, url),
+			}), {
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		} else {
+			return new Response(await optimizerContext.optimizer.optimizeUrl(optimizerContext, url));
+		}
 	} else {
 		throw new URLOptimizeError("missing parameter: url");
 	}
@@ -118,7 +123,6 @@ export default {
 		env: Env,
 		ctx: ExecutionContext
 	): Promise<Response> {
-		// parse url
 		const reqUrl = new URL(request.url);
 		try {
 			if (reqUrl.pathname == "/bot") {

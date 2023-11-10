@@ -12,7 +12,8 @@ jobs:
     environment: prod
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy
+      - name: Test & Deploy
         uses: cloudflare/wrangler-action@v3
         with:
+          preCommands: npm test
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

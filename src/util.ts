@@ -1,6 +1,4 @@
-import { Env } from ".";
 import { URLOptimizeError } from "./error";
-// import puppeteer from "@cloudflare/puppeteer";
 
 
 export function removeAllQueryParams(key: string) {
@@ -56,16 +54,3 @@ export async function sha256sum(data: string): Promise<string> {
     );
     return Array.prototype.map.call(new Uint8Array(digets), x => ('00' + x.toString(16)).slice(-2)).join('');
 }
-
-
-// export async function fetchShortLinkBrowser(url: string, env: Env) {
-//     const browser = await puppeteer.launch(env.BROWSER);
-//     const page = await browser.newPage();
-//     await page.goto(url);
-//     await page.waitForNavigation({
-//         waitUntil: "networkidle0"
-//     });
-//     const currentUrl = page.url();
-//     await browser.close();
-//     return currentUrl;
-// }

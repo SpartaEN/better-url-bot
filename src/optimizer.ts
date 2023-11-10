@@ -4,7 +4,13 @@ export type URLOptimizerOptions = {
     optimizePreview?: boolean;
 }
 
-export type URLOptimizerProcessorHandler = (url: string, options: URLOptimizerOptions, env: Env, optimizer: URLOptimizer) => Promise<string>;
+export type URLOptimizerContext = {
+    count: number;
+    optimizer: URLOptimizer;
+    options: URLOptimizerOptions;
+}
+
+export type URLOptimizerProcessorHandler = (ctx: URLOptimizerContext, url: string) => Promise<string>;
 
 
 export type URLOptimizerProcessor = {
@@ -25,11 +31,12 @@ class URLOptimizer {
         }
     }
 
-    async optimizeUrl(url: string, options: URLOptimizerOptions, env: Env): Promise<string> {
+    async optimizeUrl(ctx: URLOptimizerContext, url: string): Promise<string> {
+        ctx.count++;
         let parsedUrl = new URL(url);
         let processor = this.processors.get(parsedUrl.host);
         if (processor) {
-            return await processor(url, options, env, this);
+            return await processor(ctx, url);
         } else {
             return url;
         }
@@ -37,3 +44,10 @@ class URLOptimizer {
 }
 
 export const urlOptimizer = new URLOptimizer();
+export const createOptimizerRunningContext = (options: URLOptimizerOptions): URLOptimizerContext => {
+    return {
+        count: 0,
+        optimizer: urlOptimizer,
+        options: options,
+    }
+};

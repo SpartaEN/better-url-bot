@@ -1,8 +1,8 @@
 import { URLOptimizerProcessorHandler, urlOptimizer } from "../optimizer";
 import { fetchShortLink } from "../util";
 
-const processWeiboShortLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
-    return ctx.optimizeUrl(await fetchShortLink(url), options, env);
+const processWeiboShortLink: URLOptimizerProcessorHandler = async (ctx, url) => {
+    return ctx.optimizer.optimizeUrl(ctx, await fetchShortLink(url));
 }
 
 urlOptimizer.register([{

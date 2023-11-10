@@ -1,14 +1,14 @@
 import { URLOptimizerProcessorHandler, urlOptimizer } from "../optimizer";
 import { filterQueryString, queryParamsWhiteList, fetchShortLink } from "../util";
 
-const processBilibiliLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
+const processBilibiliLink: URLOptimizerProcessorHandler = async (ctx, url) => {
     let parsedUrl = new URL(url);
     parsedUrl.search = filterQueryString(parsedUrl.searchParams, queryParamsWhiteList(["p", "t"])).toString();
     return parsedUrl.toString();
 }
 
-const processB23TvLink: URLOptimizerProcessorHandler = async (url, options, env, ctx) => {
-    return await processBilibiliLink(await fetchShortLink(url), options, env, ctx);
+const processB23TvLink: URLOptimizerProcessorHandler = async (ctx, url) => {
+    return await processBilibiliLink(ctx, await fetchShortLink(url));
 }
 
 urlOptimizer.register([{

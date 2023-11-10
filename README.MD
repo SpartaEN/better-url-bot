@@ -21,5 +21,4 @@ curl your-deployment.worker.dev/bot-reg?token=ADMIN_TOKEN
 
 ## TODO
 
-- Unit tests
 - Support for more sites
