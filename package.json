@@ -11,6 +11,7 @@
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "vitest"
+    "test": "vitest --run --single-thread",
+    "test:watch": "vitest --watch"
   }
 }

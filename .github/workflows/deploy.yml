@@ -15,5 +15,5 @@ jobs:
       - name: Test & Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          preCommands: npm test
+          preCommands: npm run test
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
