@@ -1,4 +1,4 @@
-import { URLOptimizeError, BotAPIError } from "./error";
+import { URLOptimizeError, BotAPIError, UserProviderError } from "./error";
 import { TelegramBot, TGBotMessage } from "./tgbot";
 import { createOptimizerRunningContext, URLOptimizerOptions } from "./optimizer";
 import User from "./user";
@@ -11,6 +11,7 @@ export interface Env {
 	TGBOT_TOKEN: string;
 	WEBHOOKS_SECRET: string;
 	BROWSER: Fetcher;
+	RECURSIVE_DEPTH: string;
 }
 
 function extractUrlFromText(text: string): string | null {
@@ -29,7 +30,7 @@ async function processBotCommand(request: Request, env: Env, ctx: ExecutionConte
 	let message = await request.json() as TGBotMessage;
 	const user = new User(env, message);
 	await user.init();
-	let optimizerContext = createOptimizerRunningContext(user.data.options);
+	let optimizerContext = createOptimizerRunningContext(user.data.options, parseInt(env.RECURSIVE_DEPTH));
 	if (message.message != null) {
 		if (message.message.text != null && message.message.via_bot === undefined) {
 			if (message.message.text.startsWith("/start")) {
@@ -93,10 +94,22 @@ async function processUrl(request: Request, env: Env, ctx: ExecutionContext) {
 	let inputFormat = reqUrl.searchParams.get("input");
 	let outputFormat = reqUrl.searchParams.get("format");
 	let preview = reqUrl.searchParams.get("preview");
+	let brute = reqUrl.searchParams.get("brute");
+	let depth = 1;
+	try {
+		depth = parseInt(reqUrl.searchParams.get("depth") ?? "1");
+	} catch (e) {
+		depth = 1;
+	}
+	if (depth > 5 || depth < 1) {
+		depth = 1;
+	}
 	let options: URLOptimizerOptions = {
 		optimizePreview: preview === "true",
+		bruteMode: brute === "true",
+		bruteDepth: depth,
 	};
-	let optimizerContext = createOptimizerRunningContext(options);
+	let optimizerContext = createOptimizerRunningContext(options, parseInt(env.RECURSIVE_DEPTH));
 	if (url != null) {
 		if (inputFormat === "base64") {
 			url = atob(url);
@@ -135,9 +148,16 @@ export default {
 			}
 		} catch (e) {
 			if (e instanceof URLOptimizeError || e instanceof BotAPIError) {
+				if (e.message == "Forbidden: bot was blocked by the user") {
+					// ignore
+					return new Response("ok");
+				}
 				return new Response(e.message, {
 					status: 400,
 				});
+			} else if (e instanceof UserProviderError) {
+				// ignore since it's may not be user's message
+				return new Response("ok");
 			} else {
 				throw e;
 			}

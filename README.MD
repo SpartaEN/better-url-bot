@@ -9,7 +9,7 @@ A bot that will take a URL and return a better URL.
 Feel free to try out [@LFixBot](https://t.me/LFixBot) on Telegram.
 
 
-We also have a [web API](https://url.proj-o.net/) for you to try out.
+We also have a [web API](https://url.api.proj-o.net/) for you to try out.
 
 ```bash
 curl "https://url.api.proj-o.net/?url=https://x.com/virtual_kaf?s=20&format=json&preview=true"
@@ -23,6 +23,8 @@ curl "https://url.api.proj-o.net/?url=https://x.com/virtual_kaf?s=20&format=json
 | input | The input format of the URL | plain | No |
 | format | The format of the response | plain | No |
 | preview | Whether to return a preview of the URL | false | No |
+| brute | Treat unknown url as short url and remove all parameters | false | No |
+| depth | The depth of the short url to be resolved (max 5) | 1 | No |
 
 ### Input format
 
@@ -47,12 +49,13 @@ The preview parameter is working for the following sites to fix url preview for 
 
 ## Deployment
 
-```
+```bash
 wrangler kv:namespace create main
-wrangler secret put ADMIN_TOKEN
-wrangler secret put TGBOT_TOKEN
-wrangler secret put WEBHOOKS_SECRET
-wrangler secret put USERID_SALT
+wrangler secret put ADMIN_TOKEN # Admin token for bot registration
+wrangler secret put TGBOT_TOKEN # Telegram bot token
+wrangler secret put WEBHOOKS_SECRET # Must be a random string, used to verify webhooks
+wrangler secret put USERID_SALT # Must be a random string, salt to hash user id
+wrangler secret put RECURSIVE_DEPTH # Must be a valid number, should be greater than 5
 wrangler publish
 # set up webhooks
 curl your-deployment.worker.dev/bot-reg?token=ADMIN_TOKEN

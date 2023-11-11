@@ -28,7 +28,9 @@ export default class User {
         }
         this.data = {
             options: {
-                optimizePreview: true
+                optimizePreview: true,
+                bruteMode: false,
+                bruteDepth: 1
             }
         };
     }
@@ -41,7 +43,7 @@ export default class User {
     async loadUserData() {
         let data = await this.env.MAIN.get(PREFIX_USER + this.userIdHash, "json") as UserData;
         if (data) {
-            this.data = data;
+            this.data.options = { ...this.data.options, ...data.options };
         }
     }
 

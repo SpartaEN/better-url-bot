@@ -5,6 +5,8 @@ import User from "./user";
 export const Operations = {
     ENABLE_OPTIMIZE_PREVIEW: "enable_optimize_preview",
     DISABLE_OPTIMIZE_PREVIEW: "disable_optimize_preview",
+    ENABLE_BRUTE_MODE: "enable_brute_mode",
+    DISABLE_BRUTE_MODE: "disable_brute_mode",
 }
 
 type APIResponse = {
@@ -108,7 +110,7 @@ export class TelegramBot {
         return fetch(`https://api.telegram.org/bot${this.token}/setWebhook?url=${url}&secret_token=${this.secret}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
-                throw new Error(json.description);
+                throw new BotAPIError(json.description);
             }
             return;
         });
@@ -125,7 +127,7 @@ export class TelegramBot {
         await fetch(`https://api.telegram.org/bot${this.token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(text)}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
-                throw new Error(json.description);
+                throw new BotAPIError(json.description);
             }
             return;
         });
@@ -135,7 +137,7 @@ export class TelegramBot {
         await fetch(`https://api.telegram.org/bot${this.token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(text)}&reply_markup=${encodeURIComponent(JSON.stringify(markup_buttons))}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
-                throw new Error(json.description);
+                throw new BotAPIError(json.description);
             }
             return;
         });
@@ -145,7 +147,7 @@ export class TelegramBot {
         await fetch(`https://api.telegram.org/bot${this.token}/editMessageText?chat_id=${chat_id}&text=${encodeURIComponent(text)}&message_id=${message_id}&reply_markup=${encodeURIComponent(JSON.stringify(markup_buttons))}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
-                throw new Error(json.description);
+                throw new BotAPIError(json.description);
             }
             return;
         });
@@ -155,7 +157,7 @@ export class TelegramBot {
         await fetch(`https://api.telegram.org/bot${this.token}/answerInlineQuery?is_personal=True&inline_query_id=${inline_query_id}&results=${encodeURIComponent(JSON.stringify(results))}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
-                throw new Error(json.description);
+                throw new BotAPIError(json.description);
             }
             return;
         });
@@ -172,7 +174,8 @@ export class TelegramBot {
     private getUserSettingsText(user: User): string {
         let options = user.data.options;
         return `Your settings:
-Preview optimization🚀:  ${options.optimizePreview ? "✅" : "❌"}`
+Preview optimization🚀:  ${options.optimizePreview ? "✅" : "❌"}
+Brute mode🔥:  ${options.bruteMode ? "✅" : "❌"}`
     }
 
     private getUserSettingsMarkup(user: User): ReplyMarkup {
@@ -185,6 +188,12 @@ Preview optimization🚀:  ${options.optimizePreview ? "✅" : "❌"}`
                         callback_data: options.optimizePreview ? Operations.DISABLE_OPTIMIZE_PREVIEW : Operations.ENABLE_OPTIMIZE_PREVIEW,
                     }
                 ],
+                [
+                    {
+                        text: options.bruteMode ? "Disable brute mode" : "Enable brute mode",
+                        callback_data: options.bruteMode ? Operations.DISABLE_BRUTE_MODE : Operations.ENABLE_BRUTE_MODE,
+                    }
+                ]
             ],
         };
     }
@@ -206,6 +215,12 @@ Preview optimization🚀:  ${options.optimizePreview ? "✅" : "❌"}`
                 break;
             case Operations.DISABLE_OPTIMIZE_PREVIEW:
                 options.optimizePreview = false;
+                break;
+            case Operations.ENABLE_BRUTE_MODE:
+                options.bruteMode = true;
+                break;
+            case Operations.DISABLE_BRUTE_MODE:
+                options.bruteMode = false;
                 break;
             default:
                 await this.sendMessage(chat_id, "Invalid operation.");
