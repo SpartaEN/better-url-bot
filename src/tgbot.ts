@@ -154,7 +154,7 @@ export class TelegramBot {
     }
 
     async answerInlineQuery(inline_query_id: string, results: any[]): Promise<void> {
-        await fetch(`https://api.telegram.org/bot${this.token}/answerInlineQuery?is_personal=True&inline_query_id=${inline_query_id}&results=${encodeURIComponent(JSON.stringify(results))}`).then(async (res) => {
+        await fetch(`https://api.telegram.org/bot${this.token}/answerInlineQuery?cache_time=0&is_personal=True&inline_query_id=${inline_query_id}&results=${encodeURIComponent(JSON.stringify(results))}`).then(async (res) => {
             const json = await res.json() as APIResponse;
             if (!json.ok) {
                 throw new BotAPIError(json.description);
