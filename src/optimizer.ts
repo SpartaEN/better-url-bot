@@ -1,4 +1,4 @@
-import { fetchShortLink, removeAllQueryParams } from "./util";
+import { fetchShortLink } from "./util";
 
 export type URLOptimizerOptions = {
     optimizePreview?: boolean;
@@ -21,9 +21,90 @@ export type URLOptimizerProcessor = {
     optmize: URLOptimizerProcessorHandler;
 }
 
-class URLOptimizer {
-    processors: Map<string, URLOptimizerProcessorHandler> = new Map();
+class URLOptimizerTreeNode {
+    name: string | undefined
+    children: Map<string, URLOptimizerTreeNode>
+    optimizer: URLOptimizerProcessorHandler | undefined
+    defaultChildrenOptimizer: URLOptimizerProcessorHandler | undefined
     constructor() {
+        this.children = new Map();
+    }
+
+    get(host: string): URLOptimizerProcessorHandler | undefined {
+        if (host.length == 0) {
+            return this.optimizer;
+        }
+
+        let parts = host.split(".");
+        let child = this.children.get(parts[parts.length - 1]);
+        parts.pop();
+
+
+        let optimizer;
+
+        if (child) {
+            optimizer = child.get(parts.join('.'));
+        }
+
+        // NOTE: example.com and *.example.com will be treated differently
+        // *.example.com will apply to all subdomains, such as a.example.com, a.a.example.com
+        if (!optimizer) {
+            return this.defaultChildrenOptimizer;
+        }
+        return optimizer;
+    }
+
+    set(host: string, optimizer: URLOptimizerProcessorHandler): void {
+        if (host.length == 0) {
+            this.optimizer = optimizer;
+            return;
+        }
+
+        let parts = host.split(".");
+        let lastPart = parts.pop();
+
+        if (lastPart === "*") {
+            this.defaultChildrenOptimizer = optimizer;
+            return;
+        }
+
+        // Not gonna happen, but typescript
+        if (!lastPart) {
+            return;
+        }
+
+        let child = this.children.get(lastPart);
+
+        if (child) {
+            child.set(parts.join("."), optimizer)
+        } else {
+            child = new URLOptimizerTreeNode();
+            child.name = lastPart;
+            child.set(parts.join("."), optimizer);
+            this.children.set(lastPart, child);
+        }
+    }
+}
+
+export class URLOptimizerTree {
+    root: URLOptimizerTreeNode
+    constructor() {
+        this.root = new URLOptimizerTreeNode();
+    }
+
+    get(host: string): URLOptimizerProcessorHandler | undefined {
+        return this.root.get(host);
+    }
+
+    set(host: string, optimizer: URLOptimizerProcessorHandler): void {
+        this.root.set(host, optimizer);
+    }
+}
+
+class URLOptimizer {
+    processors: URLOptimizerTree
+    constructor() {
+        this.processors = new URLOptimizerTree();
     }
 
     register(processorList: URLOptimizerProcessor[]) {
