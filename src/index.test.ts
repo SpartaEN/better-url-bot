@@ -54,11 +54,11 @@ describe("Worker", () => {
 			expect(text).toBe("https://account.microsoft.com/devices/recoverykey");
 		}
 
-		url = encodeURIComponent("https://sparta-en.org/path-to-my-secret-little-files?key=123&track=haha#f")
+		url = encodeURIComponent("https://evo.moe/path-to-my-secret-little-files?key=123&track=haha#f")
 		resp = await worker.fetch(`https://example.com/?url=${url}&preview=true&brute=true`);
 		if (resp) {
 			let text = await resp.text();
-			expect(text).toBe("https://sparta-en.org/path-to-my-secret-little-files");
+			expect(text).toBe("https://evo.moe/path-to-my-secret-little-files");
 		}
 	});
 });
