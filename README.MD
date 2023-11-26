@@ -9,10 +9,10 @@ A bot that will take a URL and return a better URL.
 Feel free to try out [@LFixBot](https://t.me/LFixBot) on Telegram.
 
 
-We also have a [web API](https://url.api.proj-o.net/) for you to try out.
+We also have a [web API](https://url.api.evo.moe/) for you to try out.
 
 ```bash
-curl "https://url.api.proj-o.net/?url=https://x.com/virtual_kaf?s=20&format=json&preview=true"
+curl "https://url.api.evo.moe/?url=https://x.com/virtual_kaf?s=20&format=json&preview=true"
 ```
 
 > **NOTE** that parameter `url` should be url encoded carefully to prevent losing parameters.
