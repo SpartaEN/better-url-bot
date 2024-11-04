@@ -6,3 +6,4 @@ import './jd';
 import './weibo';
 import './coolapk';
 import './meituan';
+import './wechat';
