@@ -16,11 +16,11 @@ describe("URL-Bilibili", () => {
     });
 
     it("bilibili short link", async () => {
-        let url = encodeURIComponent("https://b23.tv/DzEwMs");
+        let url = encodeURIComponent("https://b23.tv/Gk6d7wm");
         let resp = await worker.fetch(`https://example.com/?url=${url}&preview=true`);
         if (resp) {
             let text = await resp.text();
-            expect(text).toBe("https://www.bilibili.com/video/BV1aX4y137pY?p=1");
+            expect(text).toBe("https://www.bilibili.com/video/BV1GJ411x7h7?p=1");
         }
     });
 
